@@ -7,20 +7,20 @@ KEY_DIR=$2
 SITE_URL=$3
 CHALLENGE_DIR=$4
 
-fetch_intermediate {
+fetch_intermediate() {
     wget -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > ${KEY_DIR}/intermediate.pem
 }
 
-create_account_key {
+create_account_key() {
     openssl genrsa 4096 > ${KEY_DIR}/account.key
 }
 
-create_site_key_and_csr {
+create_site_key_and_csr() {
     openssl genrsa 4096 > ${KEY_DIR}/${SITE_URL}.key
     openssl req -new -sha256 -key ${KEY_DIR}/${SITE_URL}.key -subj "/CN=${SITE_URL}" > ${KEY_DIR}/${SITE_URL}.csr
 }
 
-renew_cert {
+renew_cert() {
     mkdir -p ${CHALLENGE_DIR}
 
     # Obtain signed cert
