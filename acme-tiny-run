@@ -1,0 +1,50 @@
+#!/bin/bash
+
+set -e
+
+ACME_TINY_DIR=$1
+KEY_DIR=$2
+SITE_URL=$3
+CHALLENGE_DIR=$4
+
+fetch_intermediate {
+    wget -O - https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem > ${KEY_DIR}/intermediate.pem
+}
+
+create_account_key {
+    openssl genrsa 4096 > ${KEY_DIR}/account.key
+}
+
+create_site_key_and_csr {
+    openssl genrsa 4096 > ${KEY_DIR}/${SITE_URL}.key
+    openssl req -new -sha256 -key ${KEY_DIR}/${SITE_URL}.key -subj "/CN=${SITE_URL}" > ${KEY_DIR}/${SITE_URL}.csr
+}
+
+renew_cert {
+    mkdir -p ${CHALLENGE_DIR}
+
+    # Obtain signed cert
+    pushd ${ACME_TINY_DIR}
+    python acme_tiny.py --account-key ${KEY_DIR}/account.key --csr ${KEY_DIR}/${SITE_URL}.csr --acme-dir ${CHALLENGE_DIR} > ${KEY_DIR}/${SITE_URL}-signed.crt
+    popd
+
+    # Create certificate chain
+    cat ${KEY_DIR}/${SITE_URL}-signed.crt ${KEY_DIR}/intermediate.pem > ${KEY_DIR}/${SITE_URL}-chained.pem
+}
+
+
+echo retrieve latest intermediate certificate
+fetch_intermediate
+
+echo renewing key for ${SITE_URL}
+
+if [ ! -f "${KEY_DIR}/account.key" ]; then
+  create_account_key
+fi
+
+if [ ! -f "${KEY_DIR}/${SITE_URL}.key" ]; then
+    create_site_key_and_csr
+fi
+
+renew_cert
+echo done
