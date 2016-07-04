@@ -5,7 +5,9 @@ A script to automate and run the acme-tiny script
 
 ## Usage
 
+```
 acme-tiny-run /path/to/acme-tiny-dir /path/to/key-and-cert-store uri-to-register /path/to/uri/challenge-dir
+```
 
 ## How to set up
 
@@ -27,5 +29,5 @@ git clone https://github.com/JamesBarwell/acme-tiny-run.git
 
 ```bash
 chmod u+x /opt/update-certificates
-echo "0 0 1 * * /opt/update-certificates >> /var/log/acme_tiny.log" >> /etc/crontab
+echo "0 0 1 * * /opt/update-certificates 2>> /var/log/acme_tiny.log" >> /etc/crontab
 ```
